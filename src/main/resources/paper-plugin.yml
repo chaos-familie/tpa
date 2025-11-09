@@ -1,0 +1,6 @@
+name: tpa-spigot
+version: '1.0-SNAPSHOT'
+main: de.chaosfamilie.minecraft.tpa.TpaSpigot
+api-version: '1.21'
+prefix: TPA
+authors: [ Turboman3000 ]
