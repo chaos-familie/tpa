@@ -1,5 +1,6 @@
 package de.chaosfamilie.minecraft.tpa.commands;
 
+import de.chaosfamilie.minecraft.tpa.TpRequest;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.key.Key;
@@ -9,11 +10,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static de.chaosfamilie.minecraft.tpa.TpaPlugin.is_proxy;
+import static de.chaosfamilie.minecraft.tpa.TpaPlugin.requests;
 
 public class TpaDeclineCommand implements BasicCommand {
     private final MiniMessage mm = MiniMessage.miniMessage();
@@ -33,15 +36,34 @@ public class TpaDeclineCommand implements BasicCommand {
             return;
         }
 
+        TpRequest request = null;
+
+        for (var req : requests) {
+            if (req.target() != player.getUniqueId()) continue;
+            request = req;
+
+            break;
+        }
+
+        if (request == null || request.created() + (60 * 5) <= Instant.now().getEpochSecond()) {
+            player.sendMessage(mm.deserialize("<red>There is no teleport request from this player"));
+            return;
+        }
+
+        var sender = Bukkit.getPlayer(args[0]);
+
+        if (sender == null) {
+            return;
+        }
+
+        sender.sendMessage(mm.deserialize("<gold>" + player.getName() + "<red> Declined your teleport request"));
+        sender.playSound(Sound.sound(Key.key("minecraft:entity.experience_orb.pickup"), Sound.Source.MASTER, 100, 0));
+
         if (is_proxy) {
             // TODO
-        } else {
-            var sender = Bukkit.getPlayer(args[0]);
-
-            assert sender != null;
-            sender.sendMessage(mm.deserialize("<gold>" + player.getName() + "<red> Declined your teleport request"));
-            sender.playSound(Sound.sound(Key.key("minecraft:entity.experience_orb.pickup"), Sound.Source.MASTER, 100, 0));
         }
+
+        requests.remove(request);
     }
 
     @Override

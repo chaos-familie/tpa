@@ -41,7 +41,11 @@ public class TpaCommand implements BasicCommand {
         } else {
             var target = Bukkit.getPlayer(args[0]);
 
-            assert target != null;
+            if (target == null) {
+                player.sendMessage(mm.deserialize("<red>Player not found"));
+                return;
+            }
+
             target.sendMessage(mm.deserialize("<gold>" + player.getName() + "<green> wants to teleport to you"));
             target.sendMessage(mm.deserialize("<green>You have <gold><bold>5 Minutes</bold><green> to accept"));
             target.sendMessage(mm.deserialize("<green><click:run_command:'/tpaaccept " + player.getName() + "'>[ACCEPT]</click><dark_gray> | <red><click:run_command:'/tpadecline " + player.getName() + "'>[DECLINE]"));
