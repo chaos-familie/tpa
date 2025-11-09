@@ -1,5 +1,7 @@
 package de.chaosfamilie.minecraft.tpa.commands;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import de.chaosfamilie.minecraft.tpa.TpRequest;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -15,8 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static de.chaosfamilie.minecraft.tpa.TpaPlugin.is_proxy;
-import static de.chaosfamilie.minecraft.tpa.TpaPlugin.requests;
+import static de.chaosfamilie.minecraft.tpa.TpaPlugin.*;
 
 public class TpaCommand implements BasicCommand {
     private final MiniMessage mm = MiniMessage.miniMessage();
@@ -35,6 +36,7 @@ public class TpaCommand implements BasicCommand {
             player.sendMessage(mm.deserialize("<red>/tpa <player>"));
             return;
         }
+
 
         if (is_proxy) {
             // TODO
@@ -62,14 +64,20 @@ public class TpaCommand implements BasicCommand {
             return List.of();
         }
 
+        if (!(sourceStack.getSender() instanceof Player player)) {
+            sourceStack.getSender().sendMessage(mm.deserialize("<red>You have to be a player to ues this command!"));
+            return List.of();
+        }
+
         var list = new ArrayList<String>();
 
-        if (is_proxy) {
-            // TODO
-        } else {
-            for (var pp : Bukkit.getOnlinePlayers()) {
-                list.add(pp.getName());
-            }
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("PlayerList");
+
+        player.sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
+
+        for (var pp : Bukkit.getOnlinePlayers()) {
+            list.add(pp.getName());
         }
 
         return list;

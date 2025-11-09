@@ -1,7 +1,6 @@
 package de.chaosfamilie.minecraft.tpa;
 
 import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import de.chaosfamilie.minecraft.tpa.commands.TpaAcceptCommand;
 import de.chaosfamilie.minecraft.tpa.commands.TpaCommand;
@@ -17,7 +16,9 @@ import java.util.ArrayList;
 public final class TpaPlugin extends JavaPlugin implements PluginMessageListener {
     public static Plugin plugin;
     public static boolean is_proxy = false;
+    public static boolean is_proxy_tested = false;
 
+    public static ArrayList<String> network_players = new ArrayList<>();
     public static ArrayList<TpRequest> requests = new ArrayList<>();
 
     @Override
@@ -32,11 +33,6 @@ public final class TpaPlugin extends JavaPlugin implements PluginMessageListener
             commands.registrar().register("tpaaccept", new TpaAcceptCommand());
             commands.registrar().register("tpadecline", new TpaDeclineCommand());
         });
-
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("GetServer");
-
-        getServer().sendPluginMessage(plugin, "BungeeCord", out.toByteArray());
     }
 
     @Override
@@ -54,6 +50,10 @@ public final class TpaPlugin extends JavaPlugin implements PluginMessageListener
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         var subchannel = in.readUTF();
 
-        System.out.println(subchannel);
+        if (subchannel.equals("GetServer")) {
+            is_proxy = true;
+        } else if (subchannel.equals("PlayerList")) {
+            System.out.println(in.readUTF());
+        }
     }
 }
