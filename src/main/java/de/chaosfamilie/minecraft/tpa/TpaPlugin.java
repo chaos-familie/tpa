@@ -11,7 +11,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import java.nio.file.ClosedFileSystemException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public final class TpaPlugin extends JavaPlugin implements PluginMessageListener {
     public static Plugin plugin;
@@ -29,9 +31,9 @@ public final class TpaPlugin extends JavaPlugin implements PluginMessageListener
         getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            commands.registrar().register("tpa", new TpaCommand());
-            commands.registrar().register("tpaaccept", new TpaAcceptCommand());
-            commands.registrar().register("tpadecline", new TpaDeclineCommand());
+            commands.registrar().register(TpaCommand.constructCommand());
+            commands.registrar().register(TpaAcceptCommand.constructCommand());
+            commands.registrar().register(TpaDeclineCommand.constructCommand());
         });
     }
 
@@ -50,10 +52,21 @@ public final class TpaPlugin extends JavaPlugin implements PluginMessageListener
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         var subchannel = in.readUTF();
 
-        if (subchannel.equals("GetServer")) {
-            is_proxy = true;
-        } else if (subchannel.equals("PlayerList")) {
-            System.out.println(in.readUTF());
+        switch (subchannel) {
+            case "GetServer" -> {
+                is_proxy = true;
+                is_proxy_tested = true;
+            }
+            case "PlayerList" -> {
+                in.readUTF();
+
+                network_players.clear();
+                network_players.addAll(Arrays.asList(in.readUTF().split(", ")));
+            }
+            case "tpa_request" -> {
+                System.out.println(in.readUTF());
+                System.out.println(in.readUTF());
+            }
         }
     }
 }
